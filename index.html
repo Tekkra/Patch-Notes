@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>React Test</title>
+    <link rel="stylesheet" href="base.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.6.15/browser.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+  </head>
+  <body>
+    <div id="data"></div>
+    <script type="text/babel">
+
+/*
+  Mock Data to be used for testing purposes
+  Date: Milliseconds
+  Version: Patch version
+  Content: HTML Patch Data
+*/
+      var patchData =
+[
+  {
+    "date": "1446681600000",
+    "version": "3.181",
+    "content": "Loading Screen added between character select and getting into the game.  <p><p>Running uphill and jumping no longer all kinds of messed up.  Probably. <p>A symphony of wall fixes:<p> Walls have health!<p> Walls can be targeted! <p>Walls can die! <p>Earth walls have 50 health and last 1 minute currently."
+  },
+  {
+    "date": "1443916800000",
+    "version": "2.1725",
+    "content": "Loading Screen added between character select and getting into the game.  Running uphill and jumping no longer all kinds of messed up.  Probably. A symphony of wall fixes: Walls have health! Walls can be targeted! Walls can die! Earth walls have 50 health and last 1 minute currently."
+  },
+  {
+    "date": "1441238400000",
+    "version": "1.557",
+    "content": "Loading Screen added between character select and getting into the game.  Running uphill and jumping no longer all kinds of messed up.  Probably. A symphony of wall fixes: Walls have health! Walls can be targeted! Walls can die! Earth walls have 50 health and last 1 minute currently."
+  },
+  {
+    "date": "1415145600000",
+    "version": "0.557",
+    "content": "Loading Screen added between character select and getting into the game.  Running uphill and jumping no longer all kinds of messed up.  Probably. A symphony of wall fixes: Walls have health! Walls can be targeted! Walls can die! Earth walls have 50 health and last 1 minute currently."
+  },
+    {
+    "date": "1383609600000",
+    "version": "0.37",
+    "content": "Loading Screen added between character select and getting into the game.  Running uphill and jumping no longer all kinds of messed up.  Probably. A symphony of wall fixes: Walls have health! Walls can be targeted! Walls can die! Earth walls have 50 health and last 1 minute currently."
+  }
+];
+
+
+
+/*
+  Initial functions to buld some arrays we will use later
+  Build a list of months/years going backwards 12 months
+  Used to display the sidebar of patch versions
+*/
+var theMonths = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+var monthIndex = new Array();
+var currentMonths = new Array();
+var theYears = new Array();
+var today = new Date();
+var aMonth = today.getMonth();
+var aYear = today.getFullYear();
+for (let i=0; i<12; i++) {
+  currentMonths.push(theMonths[aMonth]);
+  monthIndex.push(aMonth);
+  theYears.push(aYear);
+  aMonth--;
+  if (aMonth < 0) {
+    aMonth = 11;
+    aYear = aYear - 1;
+  }
+}
+
+
+var PatchNotes = React.createClass({
+  getInitialState: function() {
+    return {  };
+  },
+
+    /*
+       Currently using jquery fade in and fade out for all visual changes
+    */
+    handleClick: function(event){
+    var text = event.currentTarget.getAttribute('version');
+    if (document.getElementById('patchInnerContainer').style.display === 'none'){
+      $(document.getElementById("patchListSingle")).fadeOut(800,function(){$(this).html(text).fadeIn(900);});
+    } else {
+      $(document.getElementById("patchInnerContainer")).fadeOut(800);
+      document.getElementById('patchListSingle').innerHTML = text;
+      $(document.getElementById("patchListSingle")).delay(900).fadeIn(800);
+    }
+    },
+
+    fullClick: function(event){
+    $(document.getElementById("patchListSingle")).fadeOut(800);
+    $(document.getElementById("patchInnerContainer")).delay(900).fadeIn(800);
+    },
+
+    render: function() {
+      /*
+        This messy block of code currently takes the arrays built above and pushes in the month to be displayed at
+        the proper place.  Based on the date of the patches.
+        Check to see if we match the date/year for the last 12 months
+        Then push all data that is older than 12 months "Older Patches"
+      */
+      var localDate = new Date();
+      var lastMatch = 0;
+      var firstMatch = 0;
+      var builtPatchList = new Array();
+      var pushMonth = "";
+      for(let i=0;i<currentMonths.length;i++){
+        firstMatch=0;
+        for(let j=0;j<this.props.patchData.length;j++){
+            localDate.setTime(parseInt(this.props.patchData[j].date));
+            if((localDate.getFullYear() == theYears[i]) && localDate.getMonth() == monthIndex[i])
+            {
+              if(firstMatch==0){
+                firstMatch=1;
+                pushMonth = '{"month": "'+ currentMonths[i] + '"}';
+                builtPatchList.push(JSON.parse(pushMonth));
+            }
+
+            builtPatchList.push(this.props.patchData[j]);
+              lastMatch=j+1;
+            }
+          }
+          if(i==11){
+          firstMatch=0;
+          for(let j=lastMatch;j<this.props.patchData.length;j++){
+            if(firstMatch==0){
+              firstMatch=1;
+              pushMonth = '{"month": "Older Patches"}';
+              builtPatchList.push(JSON.parse(pushMonth));
+            }
+            localDate.setTime(parseInt(this.props.patchData[j].date));
+            builtPatchList.push(this.props.patchData[j]);
+          }
+        }
+      }
+
+
+      /*
+        Build the page and display it here
+      */
+      return (
+        <div className="patchNotes">
+          <div className="innerPatchNotes">
+             <div className="patchInnerContainer" id="patchInnerContainer">
+               {this.props.patchData.map(function(patch, i) {
+                 var patchDate = new Date(parseInt(patch.date));
+                 var fullText = patch.version + ' - ' + patchDate.toDateString() + '<br>' + patch.content ;
+                return (<div className="gradient" key={i} dangerouslySetInnerHTML = {{__html: fullText}}></div>);
+        }, this)}
+
+        </div>
+        <div style={{display: 'none'}}className="gradient" id="patchListSingle"></div>
+        </div>
+        <div className="patchList">
+
+      <div className="patchButton" onClick={this.fullClick}>All Patches</div>
+        {builtPatchList.map(function(patch, i) {
+          if(typeof patch.version == "undefined"){
+            return(<div className="patchMonth" key={i}>{patch.month}</div>);
+          }
+            else{
+              var fullText = patch.version + ' - ' + patch.date + '<br>' + patch.content ;
+                return (<div className="patchVersion" onClick={this.handleClick} key={i} version={fullText} >{patch.version}</div>);
+        }}, this)}
+       </div>
+      </div>
+    );
+  }
+});
+
+
+    ReactDOM.render(
+      <PatchNotes patchData={patchData} />,
+      document.getElementById('data')
+    );
+
+    </script>
+  </body>
+</html>
