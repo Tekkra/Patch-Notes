@@ -3,7 +3,6 @@
   <head>
     <meta charset="utf-8">
     <title>React Test</title>
-    <!-- Not present in the tutorial. Just for basic styling. -->
     <link rel="stylesheet" href="base.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.0/react-dom.js"></script>
@@ -31,22 +30,22 @@
   {
     "date": "1443916800000",
     "version": "2.1725",
-    "content": "Loading Screen added between character select and getting into the game.  Running uphill and jumping no longer all kinds of messed up.  Probably. A symphony of wall fixes: Walls have health! Walls can be targeted! Walls can die! Earth walls have 50 health and last 1 minute currently."
+    "content": "Loading Screen added between character select and getting into the game.  <p><p>Running uphill and jumping no longer all kinds of messed up.  Probably. <p>A symphony of wall fixes:<p> Walls have health!<p> Walls can be targeted! <p>Walls can die! <p>Earth walls have 50 health and last 1 minute currently."
   },
   {
     "date": "1441238400000",
     "version": "1.557",
-    "content": "Loading Screen added between character select and getting into the game.  Running uphill and jumping no longer all kinds of messed up.  Probably. A symphony of wall fixes: Walls have health! Walls can be targeted! Walls can die! Earth walls have 50 health and last 1 minute currently."
+    "content": "Loading Screen added between character select and getting into the game.  <p><p>Running uphill and jumping no longer all kinds of messed up.  Probably. <p>A symphony of wall fixes:<p> Walls have health!<p> Walls can be targeted! <p>Walls can die! <p>Earth walls have 50 health and last 1 minute currently."
   },
   {
     "date": "1415145600000",
     "version": "0.557",
-    "content": "Loading Screen added between character select and getting into the game.  Running uphill and jumping no longer all kinds of messed up.  Probably. A symphony of wall fixes: Walls have health! Walls can be targeted! Walls can die! Earth walls have 50 health and last 1 minute currently."
+    "content": "Loading Screen added between character select and getting into the game.  <p><p>Running uphill and jumping no longer all kinds of messed up.  Probably. <p>A symphony of wall fixes:<p> Walls have health!<p> Walls can be targeted! <p>Walls can die! <p>Earth walls have 50 health and last 1 minute currently."
   },
     {
     "date": "1383609600000",
     "version": "0.37",
-    "content": "Loading Screen added between character select and getting into the game.  Running uphill and jumping no longer all kinds of messed up.  Probably. A symphony of wall fixes: Walls have health! Walls can be targeted! Walls can die! Earth walls have 50 health and last 1 minute currently."
+    "content": "Loading Screen added between character select and getting into the game.  <p><p>Running uphill and jumping no longer all kinds of messed up.  Probably. <p>A symphony of wall fixes:<p> Walls have health!<p> Walls can be targeted! <p>Walls can die! <p>Earth walls have 50 health and last 1 minute currently."
   }
 ];
 
@@ -58,6 +57,7 @@
   Used to display the sidebar of patch versions
 */
 var theMonths = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+var theMonthsAbrev = new Array("Jan.", "Feb.", "Mar.", "Apr.", "May", "June", "July", "Aug.", "Sept.", "Oct.", "Nov.", "Dec.");
 var monthIndex = new Array();
 var currentMonths = new Array();
 var theYears = new Array();
@@ -82,17 +82,19 @@ var PatchNotes = React.createClass({
   },
 
     /*
-       Currently using jquery fade in and fade out for all visual changes
+      Scroll to item selected
     */
     handleClick: function(event){
-    var text = event.currentTarget.getAttribute('version');
-    if (document.getElementById('patchInnerContainer').style.display === 'none'){
-      $(document.getElementById("patchListSingle")).fadeOut(800,function(){$(this).html(text).fadeIn(900);});
-    } else {
-      $(document.getElementById("patchInnerContainer")).fadeOut(800);
-      document.getElementById('patchListSingle').innerHTML = text;
-      $(document.getElementById("patchListSingle")).delay(900).fadeIn(800);
-    }
+    var patchID = event.currentTarget.getAttribute('value');
+
+    var scrollTo = "#"+event.currentTarget.getAttribute('id');
+    console.log("Scroll to:%s",patchID);
+    var element = document.getElementById(patchID);
+    var parent = element.parentNode;
+    $('html:not(:animated), body:not(:animated)').animate({
+       scrollTop: $(element).offset().top
+        }, 1000);
+
     },
 
     fullClick: function(event){
@@ -152,23 +154,33 @@ var PatchNotes = React.createClass({
              <div className="patchInnerContainer" id="patchInnerContainer">
                {this.props.patchData.map(function(patch, i) {
                  var patchDate = new Date(parseInt(patch.date));
-                 var fullText = patch.version + ' - ' + patchDate.toDateString() + '<br>' + patch.content ;
-                return (<div className="gradient" key={i} dangerouslySetInnerHTML = {{__html: fullText}}></div>);
+                 var pad = "00";
+                 var patchDay = ((patchDate.getDate()<10) ? "0" + patchDate.getDate() : patchDate.getDate());
+                 var patchHour = ((patchDate.getHours()<12) ? patchDate.getHours() : patchDate.getHours()-12);
+                 var patchAMPM = ((patchDate.getHours()<12) ? "am" : "pm");
+                 var patchMinutes = ((patchDate.getMinutes()<10) ? "0" + patchDate.getMinutes() : patchDate.getMinutes());
+
+                 var patchDateFormated = theMonthsAbrev[patchDate.getMonth()] + " " + patchDay + ", " + patchDate.getFullYear() + " - " + patchHour
+                 + ":" + patchMinutes + patchAMPM;
+
+                 var fullText = "<h2>" + patchDateFormated + '</h2> <div class="textVersion">version ' + patch.version + '</div>' + patch.content ;
+                 var patchID="patch"+patch.version;
+                return (<div className="gradient" key={i} id={patchID} dangerouslySetInnerHTML = {{__html: fullText}}></div>);
         }, this)}
 
         </div>
         <div style={{display: 'none'}}className="gradient" id="patchListSingle"></div>
         </div>
         <div className="patchList">
-
-      <div className="patchButton" onClick={this.fullClick}>All Patches</div>
+        <div className="patchButton">Archives</div>
         {builtPatchList.map(function(patch, i) {
           if(typeof patch.version == "undefined"){
             return(<div className="patchMonth" key={i}>{patch.month}</div>);
           }
             else{
+              var patchID="patch"+patch.version;
               var fullText = patch.version + ' - ' + patch.date + '<br>' + patch.content ;
-                return (<div className="patchVersion" onClick={this.handleClick} key={i} version={fullText} >{patch.version}</div>);
+                return (<div className="patchVersion" onClick={this.handleClick} key={i} value={patchID}>{patch.version}</div>);
         }}, this)}
        </div>
       </div>
